@@ -88,6 +88,9 @@ function createGame(gridSize) {
               selectedBowl2.dead = true;
 
               selectedBowl2 = null;
+            } else {
+              selectedBowl1.stroke = '';
+              selectedBowl1.redraw();
             }
           } else {
             selectedBowl1.stroke = '';
@@ -172,6 +175,7 @@ function getColorCollection(count) {
   var colors = [
     'Red', // 
     'Yellow', // 
+    /*
     'Blue', // 
     'Purple', // 
     'Gold', // 
@@ -180,6 +184,7 @@ function getColorCollection(count) {
     'Teal', // 
     'SpringGreen', // 
     'PowderBlue'    // 
+    */
   ];
 
   // each color is used 2 times
@@ -262,6 +267,9 @@ function checkWay(direction, availableTurns, startBowl, endBowl, isStart, direct
   
   console.log('search in ' + direction);
   
+  startBowl.stroke = '2px green';
+  startBowl.redraw();
+  
   // search continue
   switch (direction) {
     case 'n':
@@ -306,23 +314,29 @@ function checkWay(direction, availableTurns, startBowl, endBowl, isStart, direct
  * @returns {Boolean} found the end
  */
 function callSubCheckWay(availableTurns, startBowl, endBowl, relY, relX, relDirIndex) {
+  console.log('relY is: '+relY);
+  console.log('relX is: '+relX);
+  
+  relDir = getRelativeDirection(startBowl, endBowl);
+  startBowlNext = bowlCollection[startBowl.posY + relY][startBowl.posX + relX];
+  
   if (availableTurns > 0) {
-    // Here you have to turn
-    console.log('relY is: '+relY);
-    console.log('relX is: '+relX);
-    // turn in subcall
-    relDir = getRelativeDirection(startBowl, endBowl);
+    // Here you have to turn, only if there any turn available
     availableTurnsTemp = availableTurns - 1;
-    startBowlTemp = bowlCollection[startBowl.posY + relY][startBowl.posX + relX];
-    endBowlTemp = endBowl;
     // relDir on x is in 1
-    if (checkWay(relDir[relDirIndex], availableTurnsTemp, startBowlTemp, endBowlTemp, false, true)) {
+    if (checkWay(relDir[relDirIndex], availableTurnsTemp, startBowlNext, endBowl, false, true)) {
       return true;
     }
   }
   // invert relDirIndex -> search in other dimension
-  console.log('search now after: '+relDir[(-1)* relDirIndex + 1]);
-  if (checkWay(relDir[(-1)* relDirIndex + 1], availableTurns+1, startBowlTemp, endBowlTemp, false, false)) {
+  nextDir = relDir[(-1)* relDirIndex + 1];
+  
+  console.log('search now after: '+nextDir);
+  // if relative dir null, extend search in relY and relX
+  if (nextDir === null) {
+    startBowlNext = bowlCollection[startBowlNext.posY + relY][startBowlNext.posX + relX];
+  }
+  if (checkWay(relDir[(-1)* relDirIndex + 1], availableTurns, startBowlNext, endBowl, false, false)) {
     return true;
   }
   return false;
@@ -364,10 +378,23 @@ function getRelativeDirection(startBowl, endBowl) {
 function checkIfDirectionHaveToSwitch(directionSwitch, availableTurns, relDirIndex) {
   //is the available turn odd change relDirIndex because direction is invers to start direction
   if (directionSwitch) {
-    if (availableTurns % 2 == 1) {
+    // if (availableTurns % 2 == 1) {
       console.log('switch direct route');
       relDirIndex = (-1)* relDirIndex + 1;
-    } 
+    // } 
   }
   return relDirIndex;
+}
+
+/**
+ * removes all stroke (usefull for debuging)
+ * @returns {undefined}
+ */
+function rmBorder() {
+  bowlCollection.some(function(x) {
+    x.some(function(bowl) {
+      bowl.stroke = '';
+      bowl.redraw();
+    });
+  });
 }
